@@ -131,7 +131,7 @@ async def getIndex(update:Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         
 def main() -> None:
     
-    app = ApplicationBuilder().token("6271457988:AAFd7sM-mK6rxPUCTzR6ALxCAiZjcoZKdUc").connect_timeout(30.0).pool_timeout(30.0).read_timeout(30.0).build()
+    app = ApplicationBuilder().token("token").connect_timeout(30.0).pool_timeout(30.0).read_timeout(30.0).build()
     print("Bot running")
 
     app.add_handler(CommandHandler("edit", editMessages, filters= filters.ChatType.CHANNEL))
