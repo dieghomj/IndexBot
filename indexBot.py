@@ -1,16 +1,16 @@
 import time
 from datetime import date
 from typing import Any
-from telegram import Update, Message, Bot, Chat
+from telegram import Update, Document, Bot, Chat
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 import json
 import asyncio
 
+chatExport = "default.json"
 dont_start_with_hash = list()
 starts_with_hash = list()
 number_of_occurrences = dict()
 # number_of_occurrences.setdefault(Any,0)
-
 
 async def wait(bot,chat_id,message_id,message_text):
     try:
@@ -24,8 +24,8 @@ async def wait(bot,chat_id,message_id,message_text):
             await wait(bot,chat_id,message_id,message_text)
 
 async def editMessages(update = Update, context = ContextTypes.DEFAULT_TYPE) -> None:
-    
-    with open('chatExport.json','rt',encoding='utf-8') as f: 
+
+    with open(chatExport,'rt',encoding='utf-8') as f: 
         ff = f.read()
     chat_export = json.loads(ff)
     
@@ -84,7 +84,7 @@ async def restart(update:Update, context: list) -> None:
     await update.message.reply_text("Done")
     
 async def getIndex(update:Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    with open('chatExport.json','rt',encoding='utf-8') as f: 
+    with open(chatExport,'rt',encoding='utf-8') as f: 
         ff = f.read()
     chat_export = json.loads(ff)
     for d in chat_export['messages']:
@@ -115,11 +115,6 @@ async def getIndex(update:Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             mk = False
             continue
         
-        # for i in number_of_occurrences.keys():
-        #     if i == message_text:
-        #         number_of_occurrences[message_text] += 1
-        #         found = True
-        #         break
         if number_of_occurrences.get(message_text.casefold(),-1) == -1:
             number_of_occurrences[message_text.casefold()] = 1
         else:
@@ -135,13 +130,26 @@ async def getIndex(update:Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(index)
     number_of_occurrences.clear()
         
+async def export(update:Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global chatExport
+    attachment = update.message.effective_attachment
+    print(attachment.file_name)
+    if (not attachment.file_name.endswith(".json")) or attachment.file_size > 10000000:
+        await update.message.chat.send_message("Is not a valid file")
+    else :
+        print("File received, analyzing...")
+        file = await update.message.effective_attachment.get_file()
+        path = await file.download_to_drive()
+        chatExport = path.name
+
 def main() -> None:
     
-    app = ApplicationBuilder().token("#BOT_TOKEN").connect_timeout(30.0).pool_timeout(30.0).read_timeout(30.0).build()
+    app = ApplicationBuilder().token("6271457988:AAFb9Z7YzKtQRZGM39SS60YyJGa5UBkk4YY").connect_timeout(30.0).pool_timeout(30.0).read_timeout(30.0).build()
     print("Bot running")
 
     # app.add_handler(CommandHandler("edit", editMessages, filters= filters.ChatType.CHANNEL))
     app.add_handler(CommandHandler("get_index", getIndex))
+    app.add_handler(MessageHandler(filters.ATTACHMENT, export))
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
