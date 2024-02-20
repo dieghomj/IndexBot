@@ -8,7 +8,7 @@ This bot needs:
 
 - Posts in the channel that use #
 - Admin privileges
-- The chat export from the channel
+- A chat export from the channel
 
 ## To know
 
